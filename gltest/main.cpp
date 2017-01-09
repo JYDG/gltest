@@ -18,83 +18,123 @@
 
 using namespace std;
 
-GLfloat mat_diffuse[]    = { 0.25, 0.25, 1., 0. };  //확산반사
-GLfloat mat_specular[]   = { 1., 1., 1., 0. };      //경면반사
-GLfloat light_position[] = { 10., 10., 20., 1. };   //광원의 위치
-GLfloat ref_plane[]      = { 1.5, 1.5, 1.5, 0. };   //텍스쳐 기준평면
-GLUquadricObj* qobj;                                //물체 포인터
-unsigned int MyTextureObject;                       //텍스쳐 객체면
-
-#define stripeImageWidth    32
-GLubyte stripeImage[4 * stripeImageWidth];          //텍스쳐 배열
-
-void MyStripeImage() {                              //텍스쳐 생성함수
-    for (int j = 0; j < stripeImageWidth; j++) {
-        stripeImage[4 * j]     = 255;
-        stripeImage[4 * j + 1] = (j < 8) ? 0 : 255;
-        stripeImage[4 * j + 2] = (j < 8) ? 0 : 255;
-        stripeImage[4 * j + 3] = 0;
-    }
-}
-
-void MyDisplay() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glBindTexture(GL_TEXTURE_1D, MyTextureObject);
-    gluSphere(qobj, 1.5, 40, 40);
-    glutSwapBuffers();
-}
-
-void Init() {
-    qobj = gluNewQuadric();
-    gluQuadricDrawStyle(qobj, GLU_FILL);
-    
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-    glMaterialf(GL_FRONT, GL_SHININESS, 25.0);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_DEPTH_TEST);
-    glShadeModel(GL_SMOOTH);
-    
-    MyStripeImage();
-    glGenTextures(1, &MyTextureObject);
-    glBindTexture(GL_TEXTURE_1D, MyTextureObject);
-    glTexImage1D(GL_TEXTURE_1D, 0, 4, stripeImageWidth, 0,
-                 GL_RGBA, GL_UNSIGNED_BYTE, stripeImage);
-    
-    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-    glTexGenfv(GL_S, GL_OBJECT_PLANE, ref_plane);
-    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-    glEnable(GL_TEXTURE_GEN_S);
-    glEnable(GL_TEXTURE_1D);
-}
+GLfloat xrot = 0.9f, yrot = 0.8f, zrot = 1.0f;
+unsigned int MyTextureObject[1];
+AUX_RGBImageRec* pTextureImage[1];  //텍스쳐 저장 공간을 가리키는 포인터
 
 void MyReshape(int w, int h) {
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(40., (GLfloat) w / (GLfloat) h, 1., 10.);
+    gluPerspective(40.0, (GLfloat) w / (GLfloat) h, 1.0, 100.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0., 0., 5., 0., 0., 0., 0., 1., 0.);
-    glTranslatef(0., 0., -1.);
+    gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
-int main(int argc, char **argv) {
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutCreateWindow("openGL sample program");
+void MyDisplay() {
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glBindTexture(GL_TEXTURE_2D, MyTextureObject[0]);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);  //앞면
+    glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);  //뒷면
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);  //윗면
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);  //아랫면
+    glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);  //우측면
+    glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);  //좌측면
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
+    glEnd();
+    glutSwapBuffers();
+}
+
+void MyTimer(int Value) {
+    glRotatef(xrot,1.0f,0.0f,0.0f);
+    glRotatef(yrot,0.0f,1.0f,0.0f);
+    glRotatef(zrot,0.0f,0.0f,1.0f);
+    glutPostRedisplay();
+    glutTimerFunc(50, MyTimer, 1);
+}
+
+AUX_RGBImageRec* LoadBMP(char* szFilename) {
+    FILE* pFile = NULL;
+    if (!szFilename) {
+        return NULL;
+    }
+    pFile = fopen(szFilename, "r");
+    if (pFile) {
+        fclose(pFile);
+        return auxDIBImageLoad(szFilename);     //파일로부터 메모리로
+    }
+    return NULL;
+}
+
+int LoadGLTextures(char* szFilePath){       //파일을 로드하고 텍스쳐로 변환
+    int Status = FALSE;
+    glClearColor(0.0, 0.0, 0.0, 0.5);
+    memset(pTextureImage, 0, sizeof(void*) * 1);    //포인터를 널로
     
-    glutReshapeFunc(MyReshape);
-    glutDisplayFunc(MyDisplay);
-    
-    Init();
-    
-    glutMainLoop();
+    if (pTextureImage[0] = LoadBMP(szFilePath)) {   //비트맵을 로드하고 오류확인
+        Status = TRUE;                              //상태 플랙을 True로
+        glGenTextures(1, &MyTextureObject[0]);      //텍스쳐 생성
+        glBindTexture(GL_TEXTURE_2D, MyTextureObject[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, 3,
+                     pTextureImage[0]->sizeX, pTextureImage[0]->sizeY,
+                     0, GL_RGB, GL_UNSIGNED_BYTE, pTextureImage[0]->data);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+        glEnable(GL_TEXTURE_2D);
+    }
+    if (pTextureImage[0]) {                 //텍스쳐가 존재하면
+        if (pTextureImage[0]->data) {       //텍스쳐 영상이 존재하면
+            free(pTextureImage[0]->data);   //텍스쳐 영상공간 반납
+        }
+        free(pTextureImage[0]);             //텍스쳐 반납
+    }
+    return Status;
+}
+
+int main(int argc, char** argv) {
+    if (argc <= 1) {
+        printf("\n%s\n\n","Usage : TextureDLG3_Consol.exe [BMPFileName.bmp]");
+        exit(1);
+    }
+    else if (argc > 2) {
+        printf("\nToo Many Arguments!\nArgument is Only one\n");
+        exit(1);
+    }
+    else {
+        glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+        glutCreateWindow("OpenGL Sample Program");
+        glutDisplayFunc(MyDisplay);
+        glutReshapeFunc(MyReshape);
+        glutTimerFunc(500, MyTimer, 1);
+        if (LoadGLTextures(argv[1])) {
+            glEnable(GL_TEXTURE_2D);
+            glShadeModel(GL_SMOOTH);
+            glClearDepth(1.0);
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_LEQUAL);
+            glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
+            glutMainLoop();
+        }
+    }
     
     return 0;
 }
