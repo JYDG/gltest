@@ -13,6 +13,7 @@
 #include <GLUT/glut.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+#include <OpenGL/glaux.h>
 
 //#include "hw5.h"
 
